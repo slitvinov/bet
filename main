@@ -1,0 +1,26 @@
+u='https://www.oddschecker.com/football/euro-2020/austria-v-north-macedonia/correct-score'
+t=/tmp/bet.$$
+
+trap 'rm $t; exit 1' 1 2 3 4 15
+
+lynx -connect_timeout 10 -dump $u > $t
+
+awk -v me=main '
+BEGIN {
+    while ((status = getline == 1) && "" $0 != "   Change Match") ;
+    if (status != 1) {
+        printf "%s: no patter '\''Change Match'\''\n", me | "cat >&2"
+        exit 2
+    }
+    getline
+    getline
+    while (getline == 1 && "" $0 != "") {
+        sub(/.*]/, "")
+        gsub(/ /, "-")
+        $0 = tolower($0)
+        print $0
+    }
+}
+' $t
+
+rm $t
