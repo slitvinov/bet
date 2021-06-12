@@ -1,0 +1,38 @@
+#!/usr/bin/awk -f
+
+{
+    split($1, a, "-")
+
+    s0[NR] = a[1]
+    s1[NR] = a[2]
+
+    n = split($2, a, "/")
+    p[NR] = n == 1 ? 1/a[1] : a[2]/(a[1] + a[2])
+}
+
+END {
+
+    A = 0
+    for (k in p)
+        A += p[k]
+    for (b0 = 0; b0 <= 2; b0++)
+        for (b1 = 0; b1 <= 2; b1++) {
+            ans  = 0
+            for (k in s0) {
+                if (s0[k] == b0 && s1[k] == b1)
+                    res = 4
+                else if (s0[k] - s1[k] == b0 - b1)
+                    res = 3
+                else if (s0[k] == s1[k] && b0 == b1)
+                    res = 2
+                else if (s0[k] > s1[k] && b0 > b1)
+                    res = 2
+                else if (s0[k] < s1[k] && b0 < b1)
+                    res = 2
+                else
+                    res = 0
+                ans += res * p[k]
+            }
+            printf "%.3f %d %d\n", ans/A, b0, b1
+        }
+}

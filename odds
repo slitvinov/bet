@@ -1,0 +1,72 @@
+me=data
+m=belgium-v-russia
+u='https://www.oddschecker.com/football/euro-2020/'${m}'/correct-score'
+t=/tmp/bet.$$
+
+trap 'rm $t; exit 1' 1 2 3 4 15
+
+if ! lynx -connect_timeout 10 -dump "$u" > $t
+then printf "%s: lynx failed for '%s'\n" $me "$u"
+     exit 1
+fi
+
+awk -v me=main '
+BEGIN {
+    while (getline == 1 && !sub(/ - Correct Score$/, "")) ;
+    team0 = team1 = $0
+    sub(/ v .*/, "", team0)
+    sub(/.* v /, "", team1)
+    if (team0 " v " team1 != "" $0) {
+        printf "%s: no '\''Corect Score'\''\n", me | "cat >&2"
+        exit 2
+    }
+    for (cnt = 0;;) {
+        if (getline != 1) {
+            printf "%s: no '\''QuickBet'\''\n", me | "cat >&2"
+            exit 2
+        }
+        cnt += ("" $0 == "   QuickBet")
+        if (cnt == 2)
+            break
+    }
+    Result = 0
+    while (getline == 1) {
+        sub(/   /, "")
+        if ("" $0 == "") {
+            # empty
+        } else if (/^[0-9]+$/ || /^[0-9]+\/[0-9]+/) {
+            if (Result) {
+                Result = 0
+                score = result
+                sub(/.* /, "", score)
+                if (result ~ /^Any Other Score/) {
+                } else if (result ~ /^Draw /) {
+                    print score, $0
+                } else if (index(result, team0) == 1) {
+                    print score, $0
+                } else if (index(result, team1) == 1) {
+                    print flip(score), $0
+                } else {
+                    printf "%s: unknown result '\''%s'\''\n", me, result | "cat >&2"
+                    exit 2
+                }
+            }
+        } else if (sub(/^\[[0-9]*\]/, "")) {
+            result = $0
+            Result = 1
+        } else {
+            break
+        }
+    }
+}
+
+function flip(s,   a, b) {
+    a = b = s
+    sub(/-.*/, "", a)
+    sub(/.*-/, "", b)
+    return b "-" a
+}
+
+' $t
+
+rm $t
