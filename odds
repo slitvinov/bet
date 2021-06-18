@@ -1,5 +1,7 @@
-me=data
-m=belgium-v-russia
+#!/bin/sh
+
+me=odds
+: ${m=turkey-v-wales}
 u='https://www.oddschecker.com/football/euro-2020/'${m}'/correct-score'
 t=/tmp/bet.$$
 
