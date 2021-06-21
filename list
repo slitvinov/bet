@@ -1,4 +1,4 @@
-u='https://www.oddschecker.com/football/euro-2020/portugal-v-france/correct-score'
+u='https://www.oddschecker.com/football/euro-2020/ukraine-v-austria/correct-score'
 t=/tmp/bet.$$
 
 trap 'rm $t; exit 1' 1 2 3 4 15
